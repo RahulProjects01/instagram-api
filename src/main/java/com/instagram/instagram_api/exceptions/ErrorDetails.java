@@ -1,9 +1,11 @@
 package com.instagram.instagram_api.exceptions;
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
+@Data
 public class ErrorDetails {
 
     private String message;

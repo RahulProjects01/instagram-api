@@ -88,22 +88,17 @@ public class PostController {
         return new ResponseEntity<MessageResponse>(messageResponse, HttpStatus.ACCEPTED);
     }
 
-    @PutMapping("save_post/{postId}")
-    public ResponseEntity<MessageResponse> savedPostHandler(@PathVariable Integer postId, @RequestHeader("Authorization") String token) throws UserException, PostException {
+    @PutMapping("savePost/{postId}")
+        public ResponseEntity<?> savedPostHandler(@PathVariable Integer postId, @RequestHeader("Authorization") String token) throws UserException, PostException {
         User user = userService.findUserProfile(token);
         String message = postService.savedPost(postId, user.getId());
-        MessageResponse res = new MessageResponse(message);
-
-        return new ResponseEntity<MessageResponse>(res, HttpStatus.ACCEPTED);
+        return  ResponseEntity.status(HttpStatus.ACCEPTED).body(new MessageResponse(message));
     }
 
     @PutMapping("unsave_post/{postId}")
     public ResponseEntity<MessageResponse> unSavedPostHandler(@PathVariable Integer postId, @RequestHeader("Authorization") String token) throws UserException, PostException {
         User user = userService.findUserProfile(token);
         String message = postService.unSavedPost(postId, user.getId());
-        MessageResponse res = new MessageResponse(message);
-
-        return new ResponseEntity<MessageResponse>(res, HttpStatus.ACCEPTED);
+        return  ResponseEntity.status(HttpStatus.ACCEPTED).body(new MessageResponse(message));
     }
-
 }

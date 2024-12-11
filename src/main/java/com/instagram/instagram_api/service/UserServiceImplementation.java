@@ -65,9 +65,9 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public User findUserProfile(String token)throws UserException {
+    public User findUserProfile(String token) throws UserException {
 
-      //  Bearer gdsfgdsgdsfgsdffsda
+        //  Bearer gdsfgdsgdsfgsdffsda
         token = token.substring(7);
 
         JwtTokenClaims jwtTokenClaims = jwtTokenProvider.getClaimsFromToken(token);
@@ -75,7 +75,7 @@ public class UserServiceImplementation implements UserService {
 
         Optional<User> opt = userRepository.findByEmail(email);
 
-        if (opt.isPresent()){
+        if (opt.isPresent()) {
             return opt.get();
         }
 
@@ -85,7 +85,7 @@ public class UserServiceImplementation implements UserService {
     @Override
     public User findUserByUsername(String username) throws UserException {
         Optional<User> opt = userRepository.findByUsername(username);
-        if (opt.isPresent()){
+        if (opt.isPresent()) {
             return opt.get();
         }
         throw new UserException("user not exist with username: " + username);
@@ -105,11 +105,11 @@ public class UserServiceImplementation implements UserService {
         follower.setUsername(requser.getUsername());
 
         UserDto following = new UserDto();
-        following.setEmail(follower.getEmail());
-        following.setId(follower.getId());
-        following.setName(follower.getName());
-        following.setUserImage(follower.getUserImage());
-        following.setUsername(following.getUsername());
+        following.setEmail(followUser.getEmail());
+        following.setId(followUser.getId());
+        following.setName(followUser.getName());
+        following.setUserImage(followUser.getImage());
+        following.setUsername(followUser.getUsername());
 
         requser.getFollowing().add(following);
         followUser.getFollower().add(follower);
@@ -134,13 +134,13 @@ public class UserServiceImplementation implements UserService {
         follower.setUsername(requser.getUsername());
 
         UserDto following = new UserDto();
-        following.setEmail(follower.getEmail());
-        following.setId(follower.getId());
-        following.setName(follower.getName());
-        following.setUserImage(follower.getUserImage());
-        following.setUsername(following.getUsername());
+        following.setEmail(followUser.getEmail());
+        following.setId(followUser.getId());
+        following.setName(followUser.getName());
+        following.setUserImage(followUser.getImage());
+        following.setUsername(followUser.getUsername());
 
-        requser.getFollowing().remove(following);
+        requser.getFollowing().remove(follower);
         followUser.getFollower().remove(follower);
 
         userRepository.save(followUser);
@@ -150,9 +150,9 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public List<User> findUserByIds(List<Integer> userIds) throws UserException{
+    public List<User> findUserByIds(List<Integer> userIds) throws UserException {
 
-        List<User> users =  userRepository.findAllUsersByIds(userIds);
+        List<User> users = userRepository.findAllUsersByIds(userIds);
         return users;
     }
 
@@ -160,40 +160,40 @@ public class UserServiceImplementation implements UserService {
     public List<User> searchUser(String query) throws UserException {
 
         List<User> users = userRepository.findByQuery(query);
-        if (users.size()==0){
+        if (users.size() == 0) {
             throw new UserException("user not found");
         }
         return users;
     }
 
     @Override
-    public User updateUserDetails(User updatedUser, User existingUser) throws UserException{
+    public User updateUserDetails(User updatedUser, User existingUser) throws UserException {
 
-        if (updatedUser.getEmail()!=null){
+        if (updatedUser.getEmail() != null) {
             existingUser.setEmail(updatedUser.getEmail());
         }
-        if(updatedUser.getBio() != null){
+        if (updatedUser.getBio() != null) {
             existingUser.setBio(updatedUser.getBio());
         }
-        if(updatedUser.getName() != null){
+        if (updatedUser.getName() != null) {
             existingUser.setName(updatedUser.getName());
         }
-        if(updatedUser.getUsername() != null){
+        if (updatedUser.getUsername() != null) {
             existingUser.setUsername(updatedUser.getUsername());
         }
-        if(updatedUser.getMobile() != null){
+        if (updatedUser.getMobile() != null) {
             existingUser.setMobile(updatedUser.getMobile());
         }
-        if(updatedUser.getGender() != null){
+        if (updatedUser.getGender() != null) {
             existingUser.setGender(updatedUser.getGender());
         }
-        if(updatedUser.getWebsite() != null){
+        if (updatedUser.getWebsite() != null) {
             existingUser.setWebsite(updatedUser.getWebsite());
         }
-        if(updatedUser.getImage() != null){
+        if (updatedUser.getImage() != null) {
             existingUser.setImage(updatedUser.getImage());
         }
-        if(updatedUser.getId().equals(existingUser.getId())){
+        if (updatedUser.getId().equals(existingUser.getId())) {
             return userRepository.save(existingUser);
         }
 
