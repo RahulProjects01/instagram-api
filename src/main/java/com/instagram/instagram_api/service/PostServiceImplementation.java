@@ -1,5 +1,8 @@
 package com.instagram.instagram_api.service;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import com.instagram.instagram_api.config.CloudinaryConfig;
 import com.instagram.instagram_api.dto.UserDto;
 import com.instagram.instagram_api.exceptions.PostException;
 import com.instagram.instagram_api.exceptions.UserException;
@@ -7,10 +10,15 @@ import com.instagram.instagram_api.modal.Post;
 import com.instagram.instagram_api.modal.User;
 import com.instagram.instagram_api.repository.PostRepository;
 import com.instagram.instagram_api.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -25,12 +33,44 @@ public class PostServiceImplementation implements PostService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private Cloudinary cloudinary;
+
+    private static final Logger logger = LoggerFactory.getLogger(PostService.class);
+
+
     @Override
-    public Post createPost(Post post, Integer userId) throws UserException {
-
+    public Post createPost(String caption, String location, MultipartFile image, Integer userId) throws UserException {
+        // Find the user by ID
         User user = userService.findUserById(userId);
-        UserDto userDto = new UserDto();
+        if (user == null) {
+            throw new UserException("User not found for ID: " + userId);
+        }
 
+        logger.info("Creating post for user: {}", user.getUsername());
+
+        // Upload the image to Cloudinary (as MultipartFile)
+        String imageUrl = null;
+        try {
+            // Upload the image to Cloudinary
+            Map uploadResult = cloudinary.uploader().upload(image.getBytes(),
+                    ObjectUtils.asMap("folder", "posts")); // Save in a specific folder
+            imageUrl = uploadResult.get("url").toString();
+            logger.info("Image uploaded successfully, URL: {}", imageUrl);
+        } catch (Exception e) {
+            logger.error("Image upload to Cloudinary failed: {}", e.getMessage());
+            throw new RuntimeException("Image upload to Cloudinary failed: " + e.getMessage());
+        }
+
+        // Create the Post object
+        Post post = new Post();
+        post.setCaption(caption);  // Set the caption
+        post.setLocation(location);  // Set the location
+        post.setImage(imageUrl);  // Set the image URL after upload
+        post.setCreatedAt(LocalDateTime.now());  // Set the creation time
+
+        // Set user details
+        UserDto userDto = new UserDto();
         userDto.setEmail(user.getEmail());
         userDto.setId(user.getId());
         userDto.setName(user.getName());
@@ -38,9 +78,11 @@ public class PostServiceImplementation implements PostService {
         userDto.setUsername(user.getUsername());
         post.setUser(userDto);
 
-        Post createdPost = postRepository.save(post);
-        return createdPost;
+        // Save the post in the database
+        logger.info("Saving post for user: {}", user.getUsername());
+        return postRepository.save(post);
     }
+
 
     @Override
     public String deletePost(Integer postId, Integer userId) throws UserException, PostException {

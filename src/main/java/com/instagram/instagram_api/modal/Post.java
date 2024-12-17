@@ -41,4 +41,6 @@ public class Post {
     @ElementCollection
     @JoinTable(name = "likedByUsers", joinColumns = @JoinColumn(name = "user_id"))
     private Set<UserDto> likedByUsers = new HashSet<>();
+
+
 }

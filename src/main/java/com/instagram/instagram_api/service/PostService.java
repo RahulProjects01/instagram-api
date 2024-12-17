@@ -3,13 +3,14 @@ package com.instagram.instagram_api.service;
 import com.instagram.instagram_api.exceptions.PostException;
 import com.instagram.instagram_api.exceptions.UserException;
 import com.instagram.instagram_api.modal.Post;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 
 public interface PostService {
 
-    public Post createPost(Post post, Integer userId) throws UserException;
+    public Post createPost(String caption, String location, MultipartFile image, Integer userId) throws UserException;
 
     public String deletePost(Integer postId, Integer userId) throws UserException, PostException;
 

@@ -9,8 +9,10 @@ import com.instagram.instagram_api.service.PostService;
 import com.instagram.instagram_api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,13 +26,31 @@ public class PostController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/create")
-    public ResponseEntity<Post> createPostHandler(@RequestBody Post post, @RequestHeader("Authorization") String token) throws UserException {
-        User user = userService.findUserProfile(token);
-        Post createdPost = postService.createPost(post, user.getId());
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Post> createPostHandler(
+            @RequestParam("caption") String caption,
+            @RequestParam("location") String location,
+            @RequestParam("image") MultipartFile image,
+            @RequestHeader("Authorization") String token) throws UserException {
 
-        return new ResponseEntity<Post>(createdPost, HttpStatus.OK);
+        User user = userService.findUserProfile(token);
+        if (user == null) {
+            throw new UserException("Invalid token.");
+        }
+
+        Integer userId = user.getId();  // Extract the userId from the User object
+
+        try {
+            // Create the post using the userId
+            Post createdPost = postService.createPost(caption, location, image, userId);
+
+            return new ResponseEntity<>(createdPost, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
+
+
 
     @GetMapping("/all/{userId}")
     public ResponseEntity<List<Post>> findPostByUserIdHandler(@PathVariable Integer userId) throws UserException {
