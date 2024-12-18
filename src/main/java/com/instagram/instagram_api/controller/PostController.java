@@ -9,12 +9,13 @@ import com.instagram.instagram_api.service.PostService;
 import com.instagram.instagram_api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+
+import static com.instagram.instagram_api.service.PostServiceImplementation.logger;
+
 
 @RestController
 @RequestMapping("/api/posts")
@@ -26,13 +27,14 @@ public class PostController {
     @Autowired
     private UserService userService;
 
-    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/create")
     public ResponseEntity<Post> createPostHandler(
             @RequestParam("caption") String caption,
             @RequestParam("location") String location,
-            @RequestParam("image") MultipartFile image,
+            @RequestParam("image") String image,
             @RequestHeader("Authorization") String token) throws UserException {
 
+        // Validate the user token
         User user = userService.findUserProfile(token);
         if (user == null) {
             throw new UserException("Invalid token.");
@@ -46,10 +48,10 @@ public class PostController {
 
             return new ResponseEntity<>(createdPost, HttpStatus.CREATED);
         } catch (Exception e) {
+            logger.error("Error creating post: {}", e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 
 
     @GetMapping("/all/{userId}")
@@ -109,16 +111,16 @@ public class PostController {
     }
 
     @PutMapping("savePost/{postId}")
-        public ResponseEntity<?> savedPostHandler(@PathVariable Integer postId, @RequestHeader("Authorization") String token) throws UserException, PostException {
+    public ResponseEntity<?> savedPostHandler(@PathVariable Integer postId, @RequestHeader("Authorization") String token) throws UserException, PostException {
         User user = userService.findUserProfile(token);
         String message = postService.savedPost(postId, user.getId());
-        return  ResponseEntity.status(HttpStatus.ACCEPTED).body(new MessageResponse(message));
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(new MessageResponse(message));
     }
 
     @PutMapping("unsave_post/{postId}")
     public ResponseEntity<MessageResponse> unSavedPostHandler(@PathVariable Integer postId, @RequestHeader("Authorization") String token) throws UserException, PostException {
         User user = userService.findUserProfile(token);
         String message = postService.unSavedPost(postId, user.getId());
-        return  ResponseEntity.status(HttpStatus.ACCEPTED).body(new MessageResponse(message));
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(new MessageResponse(message));
     }
 }

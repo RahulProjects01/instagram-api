@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface PostService {
 
-    public Post createPost(String caption, String location, MultipartFile image, Integer userId) throws UserException;
+    public Post createPost(String caption, String location, String image, Integer userId) throws UserException;
 
     public String deletePost(Integer postId, Integer userId) throws UserException, PostException;
 

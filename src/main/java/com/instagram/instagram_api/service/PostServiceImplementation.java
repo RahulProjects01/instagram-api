@@ -36,11 +36,11 @@ public class PostServiceImplementation implements PostService {
     @Autowired
     private Cloudinary cloudinary;
 
-    private static final Logger logger = LoggerFactory.getLogger(PostService.class);
+    public static final Logger logger = LoggerFactory.getLogger(PostService.class);
 
 
     @Override
-    public Post createPost(String caption, String location, MultipartFile image, Integer userId) throws UserException {
+    public Post createPost(String caption, String location, String image, Integer userId) throws UserException {
         // Find the user by ID
         User user = userService.findUserById(userId);
         if (user == null) {
@@ -49,24 +49,16 @@ public class PostServiceImplementation implements PostService {
 
         logger.info("Creating post for user: {}", user.getUsername());
 
-        // Upload the image to Cloudinary (as MultipartFile)
-        String imageUrl = null;
-        try {
-            // Upload the image to Cloudinary
-            Map uploadResult = cloudinary.uploader().upload(image.getBytes(),
-                    ObjectUtils.asMap("folder", "posts")); // Save in a specific folder
-            imageUrl = uploadResult.get("url").toString();
-            logger.info("Image uploaded successfully, URL: {}", imageUrl);
-        } catch (Exception e) {
-            logger.error("Image upload to Cloudinary failed: {}", e.getMessage());
-            throw new RuntimeException("Image upload to Cloudinary failed: " + e.getMessage());
+        // Validate the image URL
+        if (image == null || image.trim().isEmpty()) {
+            throw new IllegalArgumentException("Image URL cannot be null or empty.");
         }
 
         // Create the Post object
         Post post = new Post();
-        post.setCaption(caption);  // Set the caption
-        post.setLocation(location);  // Set the location
-        post.setImage(imageUrl);  // Set the image URL after upload
+        post.setCaption(caption);        // Set the caption
+        post.setLocation(location);      // Set the location
+        post.setImage(image);         // Set the image URL directly
         post.setCreatedAt(LocalDateTime.now());  // Set the creation time
 
         // Set user details
