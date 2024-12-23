@@ -23,7 +23,6 @@ public class StoryController {
     @Autowired
     private StoryService storyService;
 
-
     @PostMapping("/create")
     public ResponseEntity<Story> createStoryHandler(@RequestBody Story story, @RequestHeader("Authorization") String token) throws UserException {
 
