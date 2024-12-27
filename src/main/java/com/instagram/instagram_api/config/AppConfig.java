@@ -15,7 +15,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 @Configuration
 public class AppConfig {
@@ -27,14 +26,21 @@ public class AppConfig {
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for simplicity
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS configuration
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST, "/signup").permitAll() // Allow /signup endpoint
+                        .requestMatchers(HttpMethod.POST, "/signup", "/login").permitAll() // Allow public endpoints
+                        .requestMatchers(HttpMethod.POST, "/logout").authenticated() // Allow only authenticated users to logout
                         .anyRequest().authenticated()) // Protect all other endpoints
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Use stateless session policy
-                .formLogin(form -> form // Enable form-based login
-                        .loginPage("/login") // Specify custom login page (or use default)
-                        .permitAll()) // Allow access to login page
                 .httpBasic(httpBasic -> {}) // Enable HTTP Basic Authentication
+                .logout(logout -> logout
+                        .logoutUrl("/logout") // Define the logout URL
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            response.setStatus(200);
+                            response.getWriter().write("Logout successful");
+                        })
+                        .invalidateHttpSession(true) // Invalidate session
+                        .deleteCookies("Authorization") // Delete JWT cookie
+                )
                 .addFilterAfter(new JwtTokenGenerator(), BasicAuthenticationFilter.class)
                 .addFilterBefore(new JwtTokenValidationFilter(), BasicAuthenticationFilter.class);
 
@@ -45,9 +51,9 @@ public class AppConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000")); // React frontend URL
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Collections.singletonList("*")); // Allow all headers
-        configuration.setExposedHeaders(Collections.singletonList("Authorization")); // Expose token header
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Allowed methods
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type")); // Specific headers
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Set-Cookie")); // Expose Authorization and cookies
         configuration.setAllowCredentials(true); // Allow cookies or Authorization headers
         configuration.setMaxAge(3600L); // Cache for 1 hour
 

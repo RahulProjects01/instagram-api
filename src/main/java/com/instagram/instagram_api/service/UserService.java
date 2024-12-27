@@ -25,5 +25,5 @@ public interface UserService {
 
     public User updateUserDetails(User updatedUser, User existingUser)throws UserException;
 
-
+    public List<User> getTopUsers(int limit) throws UserException;
 }

@@ -7,6 +7,8 @@ import com.instagram.instagram_api.repository.UserRepository;
 import com.instagram.instagram_api.security.JwtTokenClaims;
 import com.instagram.instagram_api.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -199,4 +201,17 @@ public class UserServiceImplementation implements UserService {
 
         throw new UserException("you cant update this user");
     }
+
+    @Override
+    public List<User> getTopUsers(int limit) throws UserException {
+        // Correct Pageable setup: page 0, size 'limit'
+        Pageable pageable = PageRequest.of(0, limit);  // Page number should be 0 for the first page
+        List<User> topUsers = userRepository.findTopUsers(pageable);
+        if (topUsers.isEmpty()) {
+            throw new UserException("No top users found");
+        }
+        return topUsers;
+    }
+
+
 }

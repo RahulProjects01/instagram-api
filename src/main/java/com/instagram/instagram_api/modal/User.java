@@ -31,7 +31,7 @@ public class User {
     private String gender;
     private String image;
     private String password;
-
+    private int followersCount;
     @Embedded
     @ElementCollection
     private Set<UserDto> follower = new HashSet<UserDto>();

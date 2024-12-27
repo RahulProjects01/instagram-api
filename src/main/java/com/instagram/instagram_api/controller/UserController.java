@@ -3,10 +3,13 @@ package com.instagram.instagram_api.controller;
 import com.instagram.instagram_api.exceptions.UserException;
 import com.instagram.instagram_api.modal.User;
 import com.instagram.instagram_api.response.MessageResponse;
+import com.instagram.instagram_api.security.JwtTokenClaims;
 import com.instagram.instagram_api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -72,10 +75,12 @@ public class UserController {
     //    api/users/search?q="query"
     @GetMapping("/search")
     public ResponseEntity<List<User>> searchUserHandler(@RequestParam("q") String query) throws UserException {
-
+        // Print out the query for debugging purposes
+        System.out.println("Search query: " + query);
         List<User> users = userService.searchUser(query);
         return new ResponseEntity<List<User>>(users, HttpStatus.OK);
     }
+
 
 
     @PutMapping("/account/edit")
@@ -85,4 +90,17 @@ public class UserController {
         User updatedUser = userService.updateUserDetails(user, reqUser);
         return new ResponseEntity<User>(updatedUser, HttpStatus.OK);
     }
+
+    @GetMapping("/top")
+    public ResponseEntity<List<User>> getTopUsers(@RequestParam(defaultValue = "10") int limit, @RequestHeader("Authorization") String token) throws UserException {
+        // The JWT token is already validated by the JwtTokenValidationFilter
+        // You can extract the user information using SecurityContextHolder
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName(); // The authenticated username
+        System.out.println("Username for top users----> " + username);
+
+        List<User> topUsers = userService.getTopUsers(limit);
+        return new ResponseEntity<>(topUsers, HttpStatus.OK);
+    }
+
 }
